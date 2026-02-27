@@ -4,7 +4,7 @@
     "description": "Fullstack Digital Book Management System",
     "main": "server/server.js",
     "scripts": {
-        "build": "cd client && npm install && npm run build && cd ../server && npm install",
+        "build": "npm install --prefix client && npm run build --prefix client && npm install --prefix server",
         "start": "node server/server.js",
         "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\""
     },
