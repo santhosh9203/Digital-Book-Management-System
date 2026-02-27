@@ -1,0 +1,17 @@
+{
+    "name": "digital-bookshop-monolith",
+    "version": "1.0.0",
+    "description": "Fullstack Digital Book Management System",
+    "main": "server/server.js",
+    "scripts": {
+        "build": "cd client && npm install && npm run build && cd ../server && npm install",
+        "start": "node server/server.js",
+        "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\""
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "dependencies": {
+        "concurrently": "^8.2.1"
+    }
+}

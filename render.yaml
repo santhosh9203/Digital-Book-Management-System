@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: digital-bookshop
+    env: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false # Set this manually in the Render Dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        value: https://digital-bookshop.onrender.com # Update this to your actual URL after first deploy

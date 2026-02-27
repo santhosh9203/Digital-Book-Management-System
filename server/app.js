@@ -69,6 +69,18 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/wallet', walletRoutes);
 
+// SERVE FRONTEND IN PRODUCTION (Render/Railway Support)
+if (process.env.NODE_ENV === 'production') {
+    const distPath = path.join(__dirname, '../client/dist');
+    app.use(express.static(distPath));
+
+    app.get('*', (req, res) => {
+        if (!req.path.startsWith('/api/')) {
+            res.sendFile(path.resolve(distPath, 'index.html'));
+        }
+    });
+}
+
 // Error handling
 app.use(errorHandler);
 
