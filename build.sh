@@ -3,11 +3,11 @@
 set -o errexit
 
 echo "--- Installing Root Dependencies ---"
-npm install
+npm install --production=false
 
 echo "--- Building Client ---"
 cd client
-npm install
+npm install --production=false
 npm run build
 cd ..
 
