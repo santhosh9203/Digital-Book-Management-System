@@ -17,6 +17,9 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
+// Trust proxy for Render/Railway (required for express-rate-limit)
+app.set('trust proxy', 1);
+
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads', 'books');
 if (!fs.existsSync(uploadsDir)) {
