@@ -4,6 +4,18 @@ const mongoose = require('mongoose');
 const Book = require('../models/bookModel');
 const Order = require('../models/orderModel');
 const User = require('../models/userModel');
+const Notification = require('../models/notificationModel');
+
+const orderStatusLabels = {
+    order_placed: 'Order placed',
+    processing: 'Processing',
+    packed: 'Packed',
+    shipped: 'Shipped',
+    out_for_delivery: 'Out for delivery',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled',
+    returned: 'Returned',
+};
 
 /**
  * GET /api/admin/dashboard
@@ -100,6 +112,18 @@ const addBook = async (req, res, next) => {
             cover_image_url,
         });
 
+        const users = await User.find({ role: 'user' }).select('_id').lean();
+        if (users.length > 0) {
+            const notifications = users.map((u) => ({
+                user_id: u._id,
+                title: 'New arrival',
+                message: `New book \"${book.title}\" is now available.`,
+                type: 'book',
+                link: `/books/${book._id.toString()}`,
+            }));
+            await Notification.insertMany(notifications);
+        }
+
         res.status(201).json({ message: 'Book added successfully', book });
     } catch (error) {
         next(error);
@@ -180,4 +204,88 @@ const deleteBook = async (req, res, next) => {
     }
 };
 
-module.exports = { getDashboard, getUsers, getOrders, getBooks, addBook, updateBook, deleteBook };
+/**
+ * PATCH /api/admin/orders/:id/status
+ */
+const updateOrderStatus = async (req, res, next) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ message: 'Invalid order ID format.' });
+        }
+
+        const { status, note, tracking_number } = req.body;
+        if (!status || !orderStatusLabels[status]) {
+            return res.status(400).json({ message: 'Invalid order status.' });
+        }
+
+        const orderId = new mongoose.Types.ObjectId(req.params.id);
+        const order = await Order.findOne({ _id: orderId }).populate('book_id', 'title');
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found.' });
+        }
+
+        order.fulfillment_status = status;
+        if (tracking_number !== undefined) {
+            order.tracking_number = tracking_number || '';
+        }
+        if (status === 'delivered' && !order.delivery_date) {
+            order.delivery_date = new Date();
+        }
+        if (status === 'cancelled') {
+            order.cancelled_at = new Date();
+        }
+        if (status === 'returned' && !order.returned_at) {
+            order.returned_at = new Date();
+        }
+
+        const entry = {
+            status,
+            label: orderStatusLabels[status],
+            note: note || '',
+            timestamp: new Date(),
+        };
+
+        if (!Array.isArray(order.tracking_history)) {
+            order.tracking_history = [];
+        }
+        order.tracking_history.push(entry);
+
+        await order.save();
+
+        if (order.user_id) {
+            await Notification.create({
+                user_id: order.user_id,
+                title: 'Order update',
+                message: `Your order for \"${order.book_id?.title || 'Book'}\" is now ${orderStatusLabels[status]}.`,
+                type: 'order',
+                link: `/orders?highlight=${order._id.toString()}`,
+                metadata: { status },
+            });
+            if (status === 'delivered' && order.book_id?._id) {
+                await Notification.create({
+                    user_id: order.user_id,
+                    title: 'Rate your purchase',
+                    message: `Your order for \"${order.book_id?.title || 'Book'}\" was delivered. Leave a review.`,
+                    type: 'order',
+                    link: `/books/${order.book_id._id.toString()}`,
+                    metadata: { book_id: order.book_id._id.toString(), order_id: order._id.toString() },
+                });
+            }
+        }
+
+        res.json({ message: 'Order updated successfully', order });
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = {
+    getDashboard,
+    getUsers,
+    getOrders,
+    getBooks,
+    addBook,
+    updateBook,
+    deleteBook,
+    updateOrderStatus,
+};

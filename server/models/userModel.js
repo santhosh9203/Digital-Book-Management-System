@@ -5,6 +5,10 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
+    transaction_password_hash: { type: String, default: null },
+    transaction_password_set_at: { type: Date, default: null },
+    transaction_password_reset_otp: { type: String, default: null },
+    transaction_password_reset_expires: { type: Date, default: null },
 }, {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
 });

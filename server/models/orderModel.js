@@ -1,5 +1,26 @@
 const mongoose = require('mongoose');
 
+const fulfillmentStatuses = [
+    'order_placed',
+    'processing',
+    'packed',
+    'shipped',
+    'out_for_delivery',
+    'delivered',
+    'cancelled',
+    'returned',
+];
+
+const trackingSchema = new mongoose.Schema(
+    {
+        status: { type: String, enum: fulfillmentStatuses, required: true },
+        label: { type: String, default: '' },
+        note: { type: String, default: '' },
+        timestamp: { type: Date, default: Date.now },
+    },
+    { _id: false }
+);
+
 const orderSchema = new mongoose.Schema(
     {
         user_id: {
@@ -20,6 +41,20 @@ const orderSchema = new mongoose.Schema(
             enum: ['created', 'paid', 'failed'],
             default: 'created',
         },
+        fulfillment_status: {
+            type: String,
+            enum: fulfillmentStatuses,
+            default: 'order_placed',
+        },
+        tracking_number: { type: String, default: '' },
+        tracking_history: { type: [trackingSchema], default: [] },
+        expected_delivery_date: { type: Date, default: null },
+        delivery_date: { type: Date, default: null },
+        delivery_extension_count: { type: Number, default: 0 },
+        cancelled_at: { type: Date, default: null },
+        returned_at: { type: Date, default: null },
+        refunded_at: { type: Date, default: null },
+        refund_amount: { type: Number, default: null },
     },
     {
         timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
@@ -40,6 +75,7 @@ orderSchema.set('toJSON', {
 orderSchema.index({ razorpay_order_id: 1 });
 orderSchema.index({ user_id: 1 });
 orderSchema.index({ status: 1 });
+orderSchema.index({ fulfillment_status: 1 });
 
 // static methods
 orderSchema.statics.findByRazorpayOrderId = function (razorpay_order_id) {
@@ -59,6 +95,7 @@ orderSchema.statics.findByUserAndBook = function (user_id, book_id) {
         user_id,
         book_id,
         status: 'paid',
+        fulfillment_status: { $nin: ['cancelled', 'returned'] },
     }).lean();
 };
 

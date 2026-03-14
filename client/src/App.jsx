@@ -15,7 +15,8 @@ import BookListing from './pages/BookListing';
 import BookDetail from './pages/BookDetail';
 import UserDashboard from './pages/UserDashboard';
 import Wallet from './pages/Wallet';
-import BookReader from './pages/BookReader';
+import MyOrders from './pages/MyOrders';
+import Notifications from './pages/Notifications';
 import AdminDashboard from './pages/AdminDashboard';
 
 export default function App() {
@@ -44,18 +45,26 @@ export default function App() {
                 }
               />
               <Route
-                path="/wallet"
+                path="/orders"
                 element={
                   <ProtectedRoute>
-                    <Wallet />
+                    <MyOrders />
                   </ProtectedRoute>
                 }
               />
               <Route
-                path="/read/:id"
+                path="/notifications"
                 element={
                   <ProtectedRoute>
-                    <BookReader />
+                    <Notifications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/wallet"
+                element={
+                  <ProtectedRoute>
+                    <Wallet />
                   </ProtectedRoute>
                 }
               />

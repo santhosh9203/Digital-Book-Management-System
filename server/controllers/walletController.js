@@ -1,6 +1,8 @@
 const Wallet = require('../models/walletModel');
 const WalletLedger = require('../models/walletLedgerModel');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const User = require('../models/userModel');
 
 /**
  * GET /api/wallet/balance
@@ -31,10 +33,41 @@ const creditWallet = async (req, res, next) => {
             session = null;
         }
 
-        const { amount, description } = req.body;
+        const { amount, description, password } = req.body;
         if (!amount || amount <= 0) {
             if (session) await session.abortTransaction();
             return res.status(400).json({ message: 'Valid amount is required' });
+        }
+        if (!password) {
+            if (session) {
+                await session.abortTransaction();
+                session.endSession();
+            }
+            return res.status(400).json({ message: 'Transaction password is required' });
+        }
+
+        const user = await User.findOne({ _id: req.user.id }).select('transaction_password_hash').lean();
+        if (!user) {
+            if (session) {
+                await session.abortTransaction();
+                session.endSession();
+            }
+            return res.status(401).json({ message: 'User not found' });
+        }
+        if (!user.transaction_password_hash) {
+            if (session) {
+                await session.abortTransaction();
+                session.endSession();
+            }
+            return res.status(400).json({ message: 'Transaction password not set. Set it in Wallet.' });
+        }
+        const isMatch = await bcrypt.compare(password, user.transaction_password_hash);
+        if (!isMatch) {
+            if (session) {
+                await session.abortTransaction();
+                session.endSession();
+            }
+            return res.status(403).json({ message: 'Invalid transaction password' });
         }
 
         let wallet = await Wallet.findOne({ user_id: req.user.id }).session(session);

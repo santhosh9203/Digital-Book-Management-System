@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { HiOutlineBookOpen, HiOutlineShieldCheck, HiOutlineCreditCard, HiOutlineDownload } from 'react-icons/hi';
+import { HiOutlineBookOpen, HiOutlineCreditCard, HiOutlineTruck, HiOutlineBell } from 'react-icons/hi';
 
 export default function Home() {
     const { user } = useAuth();
@@ -19,15 +19,15 @@ export default function Home() {
             color: '#42d4a6',
         },
         {
-            icon: <HiOutlineDownload className="text-2xl" />,
-            title: 'Instant Download',
-            desc: 'Get instant access to your purchased books after payment.',
+            icon: <HiOutlineTruck className="text-2xl" />,
+            title: 'Order Tracking',
+            desc: 'Track your orders with live status updates from processing to delivery.',
             color: '#10b981',
         },
         {
-            icon: <HiOutlineShieldCheck className="text-2xl" />,
-            title: 'Secure & Private',
-            desc: 'Your data and purchases are protected with enterprise-grade security.',
+            icon: <HiOutlineBell className="text-2xl" />,
+            title: 'New Arrival Alerts',
+            desc: 'Get notified when new books are added to the store.',
             color: '#f59e0b',
         },
     ];
@@ -47,31 +47,22 @@ export default function Home() {
                 <div className="max-w-5xl mx-auto text-center relative z-10">
                     <div className="animate-fade-in-up">
                         {/* Logo */}
-                        <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4"
+                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
                             style={{ background: 'linear-gradient(135deg, #70d540, #42d4a6)' }}>
-                            <HiOutlineBookOpen className="text-white text-2xl" />
+                            <HiOutlineBookOpen className="text-white text-3xl" />
                         </div>
-                        <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold mb-6"
-                            style={{
-                                background: 'rgba(112, 213, 64, 0.15)',
-                                border: '1px solid rgba(112, 213, 64, 0.25)',
-                                color: '#2d6a1f',
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                            }}>
-                            ✨ Your Digital Book Paradise
-                        </span>
 
                         <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight"
                             style={{ fontFamily: 'var(--font-display)' }}>
-                            Discover, Buy &{' '}
-                            <span className="gradient-text">Read</span>
+                            Discover, Order &{' '}
+                            <span className="gradient-text">Track</span>
                             <br />
-                            Digital Books
+                            Books
                         </h1>
 
                         <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-                            Access a premium collection of digital books. Buy securely with Razorpay,
-                            and download instantly. Your personal library, available everywhere.
+                            Shop a premium collection of books. Place secure orders and track every step,
+                            from confirmation to delivery.
                         </p>
 
                         <div className="flex flex-wrap items-center justify-center gap-4">
@@ -134,8 +125,8 @@ export default function Home() {
             {/* CTA Section */}
             <section className="py-16 px-4">
                 <div className="max-w-3xl mx-auto text-center glass rounded-2xl p-10">
-                    <h2 className="text-2xl font-bold mb-3" style={{ fontFamily: 'var(--font-display)' }}>
-                        Ready to start reading?
+                        <h2 className="text-2xl font-bold mb-3" style={{ fontFamily: 'var(--font-display)' }}>
+                        Ready to start shopping?
                     </h2>
                     <p className="text-slate-400 text-sm mb-6">
                         Join thousands of readers who have already discovered their next favorite book.

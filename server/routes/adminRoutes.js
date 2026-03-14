@@ -10,6 +10,7 @@ const {
     addBook,
     updateBook,
     deleteBook,
+    updateOrderStatus,
 } = require('../controllers/adminController');
 
 // All admin routes require authentication + admin role
@@ -19,6 +20,7 @@ router.get('/dashboard', getDashboard);
 router.get('/users', getUsers);
 router.get('/orders', getOrders);
 router.get('/books', getBooks);
+router.patch('/orders/:id/status', updateOrderStatus);
 
 router.post(
     '/books',

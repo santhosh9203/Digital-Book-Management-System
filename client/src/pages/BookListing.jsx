@@ -46,9 +46,9 @@ export default function BookListing() {
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: 'var(--font-display)' }}>
-                    Browse <span className="gradient-text">Books</span>
+                    Shop <span className="gradient-text">Books</span>
                 </h1>
-                <p className="text-sm text-slate-400">Discover your next great read</p>
+                <p className="text-sm text-slate-400">Find titles, compare prices, and place your order</p>
             </div>
 
             {/* Search Bar */}

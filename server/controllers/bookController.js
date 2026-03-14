@@ -3,7 +3,6 @@ const fs = require('fs');
 const { PDFDocument } = require('pdf-lib');
 const mongoose = require('mongoose');
 const Book = require('../models/bookModel');
-const Order = require('../models/orderModel');
 
 /**
  * GET /api/books
@@ -95,41 +94,4 @@ const getBookCover = async (req, res, next) => {
     }
 };
 
-/**
- * GET /api/books/:id/download
- * Secure download — only for paid users
- */
-const downloadBook = async (req, res, next) => {
-    try {
-        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-            return res.status(400).json({ message: 'Invalid book ID format.' });
-        }
-        const bookId = new mongoose.Types.ObjectId(req.params.id);
-        const book = await Book.findOne({ _id: bookId });
-        if (!book) {
-            return res.status(404).json({ message: 'Book not found.' });
-        }
-
-        // Check if user has purchased this book
-        if (!mongoose.Types.ObjectId.isValid(req.user.id)) {
-            return res.status(400).json({ message: 'Invalid user ID format.' });
-        }
-        const userId = new mongoose.Types.ObjectId(req.user.id);
-        const order = await Order.findByUserAndBook(userId, bookId);
-        if (!order) {
-            return res.status(403).json({ message: 'You have not purchased this book.' });
-        }
-
-        if (!book.pdf_url) {
-            return res.status(404).json({ message: 'PDF file not available.' });
-        }
-
-        const filePath = path.join(__dirname, '..', book.pdf_url);
-        const filename = `${book.title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-        res.download(filePath, filename);
-    } catch (error) {
-        next(error);
-    }
-};
-
-module.exports = { getBooks, getCategories, getBookById, getBookCover, downloadBook };
+module.exports = { getBooks, getCategories, getBookById, getBookCover };

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { bookService, orderService, walletService } from '../services';
+import { bookService, orderService, walletService, userService, reviewService } from '../services';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { HiOutlineShoppingCart, HiOutlineDownload, HiArrowLeft } from 'react-icons/hi';
+import { HiOutlineShoppingCart, HiArrowLeft, HiStar, HiOutlineStar } from 'react-icons/hi';
 import PaymentSimulatorModal from '../components/PaymentSimulatorModal';
 
 export default function BookDetail() {
@@ -13,10 +13,15 @@ export default function BookDetail() {
     const [book, setBook] = useState(null);
     const [loading, setLoading] = useState(true);
     const [purchasing, setPurchasing] = useState(false);
-    const [purchased, setPurchased] = useState(false);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [orderData, setOrderData] = useState(null);
     const [walletBalance, setWalletBalance] = useState(0);
+    const [reviews, setReviews] = useState([]);
+    const [reviewSummary, setReviewSummary] = useState({ average: 0, count: 0 });
+    const [reviewEligibility, setReviewEligibility] = useState({ loading: true, eligible: false, reason: '' });
+    const [reviewRating, setReviewRating] = useState(0);
+    const [reviewComment, setReviewComment] = useState('');
+    const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
     useEffect(() => {
         fetchBook();
@@ -24,8 +29,21 @@ export default function BookDetail() {
 
     useEffect(() => {
         if (user && book) {
-            checkPurchased();
             fetchBalance();
+        }
+    }, [user, book]);
+
+    useEffect(() => {
+        if (book) {
+            fetchReviews();
+        }
+    }, [book]);
+
+    useEffect(() => {
+        if (user && book) {
+            fetchReviewEligibility();
+        } else {
+            setReviewEligibility({ loading: false, eligible: false, reason: '' });
         }
     }, [user, book]);
 
@@ -41,17 +59,6 @@ export default function BookDetail() {
         }
     };
 
-    const checkPurchased = async () => {
-        try {
-            const res = await orderService.getMyOrders();
-            const orders = res.data.orders || [];
-            const found = orders.find((o) => o.book_id === book.id && o.status === 'paid');
-            setPurchased(!!found);
-        } catch {
-            // ignore
-        }
-    };
-
     const fetchBalance = async () => {
         try {
             const res = await walletService.getBalance();
@@ -61,11 +68,42 @@ export default function BookDetail() {
         }
     };
 
+    const fetchReviews = async () => {
+        try {
+            const res = await reviewService.getBookReviews(id);
+            setReviews(res.data.reviews || []);
+            setReviewSummary(res.data.summary || { average: 0, count: 0 });
+        } catch {
+            setReviews([]);
+            setReviewSummary({ average: 0, count: 0 });
+        }
+    };
+
+    const fetchReviewEligibility = async () => {
+        try {
+            const res = await reviewService.getEligibility(id);
+            setReviewEligibility({ loading: false, eligible: !!res.data.eligible, reason: res.data.reason || '' });
+        } catch {
+            setReviewEligibility({ loading: false, eligible: false, reason: '' });
+        }
+    };
+
     const handleBuy = async () => {
         if (!user) {
             toast.error('Please login to purchase');
             navigate('/login');
             return;
+        }
+
+        try {
+            const statusRes = await userService.getTransactionPasswordStatus();
+            if (!statusRes.data.isSet) {
+                toast.error('Set your transaction password in Wallet first.');
+                navigate('/wallet');
+                return;
+            }
+        } catch {
+            // ignore and proceed
         }
 
         if (walletBalance < book.price) {
@@ -92,29 +130,39 @@ export default function BookDetail() {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
+                password: response.password,
             });
-            toast.success('Payment successful! You can now download the book.');
-            setPurchased(true);
-            setIsPaymentModalOpen(false);
-        } catch {
-            toast.error('Payment verification failed');
+            toast.success('Order placed successfully!');
+            window.dispatchEvent(new Event('notifications:refresh'));
+            return { ok: true };
+        } catch (err) {
+            const message = err.response?.data?.message || 'Payment verification failed';
+            toast.error(message);
+            return { ok: false, message };
         }
     };
 
-    const handleDownload = async () => {
+    const handleSubmitReview = async () => {
+        if (!reviewRating) {
+            toast.error('Select a star rating');
+            return;
+        }
+        setReviewSubmitting(true);
         try {
-            const res = await bookService.download(book.id);
-            const url = window.URL.createObjectURL(new Blob([res.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `${book.title}.pdf`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-            toast.success('Download started!');
-        } catch {
-            toast.error('Download failed');
+            await reviewService.createReview({
+                book_id: book.id || book._id,
+                rating: reviewRating,
+                comment: reviewComment,
+            });
+            toast.success('Review submitted');
+            setReviewRating(0);
+            setReviewComment('');
+            fetchReviews();
+            fetchReviewEligibility();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to submit review');
+        } finally {
+            setReviewSubmitting(false);
         }
     };
 
@@ -128,7 +176,7 @@ export default function BookDetail() {
 
     if (!book) return null;
 
-    const coverUrl = book.cover_image_url ? bookService.getCoverUrl(book.id) : null;
+    const coverUrl = book.cover_image_url ? bookService.getCoverUrl(book.id || book._id) : null;
 
     return (
         <div className="page-container min-h-screen">
@@ -174,27 +222,109 @@ export default function BookDetail() {
                     )}
 
                     <div className="flex flex-wrap gap-3">
-                        {purchased ? (
-                            <button onClick={handleDownload} className="btn-primary py-3 px-8">
-                                <HiOutlineDownload className="text-lg" />
-                                Download PDF
-                            </button>
-                        ) : (
-                            <button onClick={handleBuy} disabled={purchasing} className="btn-primary py-3 px-8">
-                                {purchasing ? (
-                                    <span className="flex items-center gap-2">
-                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        Processing...
-                                    </span>
-                                ) : (
-                                    <>
-                                        <HiOutlineShoppingCart className="text-lg" />
-                                        Buy Now — ₹{parseFloat(book.price).toFixed(0)}
-                                    </>
-                                )}
-                            </button>
-                        )}
+                        <button onClick={handleBuy} disabled={purchasing} className="btn-primary py-3 px-8">
+                            {purchasing ? (
+                                <span className="flex items-center gap-2">
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    Processing...
+                                </span>
+                            ) : (
+                                <>
+                                    <HiOutlineShoppingCart className="text-lg" />
+                                    Place Order — ₹{parseFloat(book.price).toFixed(0)}
+                                </>
+                            )}
+                        </button>
                     </div>
+                </div>
+            </div>
+
+            <div className="mt-12 glass rounded-2xl p-6 border border-white/10">
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 className="text-xl font-bold mb-1" style={{ fontFamily: 'var(--font-display)' }}>Customer Reviews</h2>
+                        <p className="text-xs text-slate-400">Verified buyers only</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="text-2xl font-bold text-white">{reviewSummary.average.toFixed(1)}</div>
+                        <div className="flex items-center">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                                i < Math.round(reviewSummary.average) ? (
+                                    <HiStar key={`avg-${i}`} className="text-yellow-400" />
+                                ) : (
+                                    <HiOutlineStar key={`avg-${i}`} className="text-slate-500" />
+                                )
+                            ))}
+                        </div>
+                        <div className="text-xs text-slate-400">{reviewSummary.count} reviews</div>
+                    </div>
+                </div>
+
+                {user && reviewEligibility.eligible && (
+                    <div className="mb-8 bg-slate-900/50 border border-white/10 rounded-2xl p-5">
+                        <h3 className="text-sm font-semibold text-white mb-3">Write a review</h3>
+                        <div className="flex items-center gap-2 mb-4">
+                            {Array.from({ length: 5 }).map((_, i) => {
+                                const value = i + 1;
+                                return (
+                                    <button
+                                        key={`rate-${value}`}
+                                        type="button"
+                                        onClick={() => setReviewRating(value)}
+                                        className="text-lg"
+                                    >
+                                        {value <= reviewRating ? (
+                                            <HiStar className="text-yellow-400" />
+                                        ) : (
+                                            <HiOutlineStar className="text-slate-500" />
+                                        )}
+                                    </button>
+                                );
+                            })}
+                            <span className="text-xs text-slate-400 ml-2">{reviewRating ? `${reviewRating} / 5` : 'Select rating'}</span>
+                        </div>
+                        <textarea
+                            value={reviewComment}
+                            onChange={(e) => setReviewComment(e.target.value)}
+                            className="input-field h-24 mb-4"
+                            placeholder="Share your experience (optional)"
+                        />
+                        <button
+                            type="button"
+                            onClick={handleSubmitReview}
+                            disabled={reviewSubmitting}
+                            className="btn-primary py-2 px-4 text-sm"
+                        >
+                            {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
+                        </button>
+                    </div>
+                )}
+
+                <div className="space-y-4">
+                    {reviews.length === 0 ? (
+                        <div className="text-sm text-slate-500">No reviews yet. Be the first to review.</div>
+                    ) : (
+                        reviews.map((review) => (
+                            <div key={review._id || review.id} className="border border-white/10 rounded-xl p-4 bg-slate-900/40">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="text-sm text-white font-semibold">{review.user_id?.name || 'Customer'}</div>
+                                    <div className="text-[10px] text-slate-500">{new Date(review.created_at).toLocaleDateString()}</div>
+                                </div>
+                                <div className="flex items-center gap-1 mb-2">
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                        i < review.rating ? (
+                                            <HiStar key={`r-${review._id}-${i}`} className="text-yellow-400 text-sm" />
+                                        ) : (
+                                            <HiOutlineStar key={`r-${review._id}-${i}`} className="text-slate-600 text-sm" />
+                                        )
+                                    ))}
+                                </div>
+                                {review.comment && (
+                                    <p className="text-sm text-slate-300">{review.comment}</p>
+                                )}
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
 

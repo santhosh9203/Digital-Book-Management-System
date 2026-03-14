@@ -11,14 +11,14 @@ export const bookService = {
     getById: (id) => api.get(`/books/${id}`),
     getCategories: () => api.get('/books/categories'),
     getCoverUrl: (id) => `/api/books/${id}/cover`,
-    download: (id) =>
-        api.get(`/books/${id}/download`, { responseType: 'blob' }),
 };
 
 export const orderService = {
     createOrder: (book_id) => api.post('/orders/create-order', { book_id }),
     verifyPayment: (data) => api.post('/orders/verify', data),
     getMyOrders: () => api.get('/orders/my-orders'),
+    cancelOrder: (id) => api.patch(`/orders/${id}/cancel`),
+    returnOrder: (id) => api.patch(`/orders/${id}/return`),
 };
 
 export const adminService = {
@@ -26,6 +26,7 @@ export const adminService = {
     getUsers: () => api.get('/admin/users'),
     getOrders: () => api.get('/admin/orders'),
     getBooks: () => api.get('/admin/books'),
+    updateOrderStatus: (id, data) => api.patch(`/admin/orders/${id}/status`, data),
     addBook: (formData) =>
         api.post('/admin/books', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
@@ -40,6 +41,25 @@ export const adminService = {
 export const walletService = {
     getBalance: () => api.get('/wallet/balance'),
     getTransactions: () => api.get('/wallet/transactions'),
-    credit: (amount, description) => api.post('/wallet/credit', { amount, description }),
+    credit: (amount, description, password) => api.post('/wallet/credit', { amount, description, password }),
     debit: (amount, description) => api.post('/wallet/debit', { amount, description }),
+};
+
+export const notificationService = {
+    getNotifications: () => api.get('/notifications'),
+    markRead: (id) => api.patch(`/notifications/${id}/read`),
+    markAllRead: () => api.patch('/notifications/read-all'),
+};
+
+export const userService = {
+    getTransactionPasswordStatus: () => api.get('/users/transaction-password/status'),
+    setTransactionPassword: (data) => api.put('/users/transaction-password', data),
+    requestTransactionPasswordReset: () => api.post('/users/transaction-password/forgot'),
+    resetTransactionPassword: (data) => api.post('/users/transaction-password/reset', data),
+};
+
+export const reviewService = {
+    getBookReviews: (bookId) => api.get(`/reviews/book/${bookId}`),
+    getEligibility: (bookId) => api.get(`/reviews/eligibility/${bookId}`),
+    createReview: (data) => api.post('/reviews', data),
 };

@@ -1,9 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { HiOutlineBookOpen, HiOutlineLogout, HiOutlineUser, HiOutlineShieldCheck } from 'react-icons/hi';
+import { HiOutlineLogout, HiOutlineUser, HiOutlineShieldCheck, HiOutlineShoppingCart } from 'react-icons/hi';
 import { HiBars3, HiXMark } from 'react-icons/hi2';
 import { useState } from 'react';
 import WalletBalance from './WalletBalance';
+import NotificationsBell from './NotificationsBell';
+import Logo from '../assets/logo/Logo.png';
 
 export default function Navbar() {
     const { user, logout, isAdmin } = useAuth();
@@ -20,13 +22,18 @@ export default function Navbar() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center gap-2 group" style={{ textDecoration: 'none' }}>
-                        <div className="w-9 h-9 rounded-lg flex items-center justify-center">
-                            <HiOutlineBookOpen className="text-2xl" style={{ color: '#0f172a' }} />
+                    <Link to="/" className="flex items-center gap-3 group" style={{ textDecoration: 'none' }}>
+                        <img
+                            src={Logo}
+                            alt="BOoCArT"
+                            className="h-9 w-auto"
+                        />
+                        <div className="flex flex-col leading-none">
+                            <span className="text-2xl font-extrabold tracking-tight" style={{ fontFamily: 'var(--font-display)', lineHeight: '1' }}>
+                                <span style={{ color: '#0f172a' }}>BOo</span>
+                                <span style={{ color: '#22c55e' }}>CArT</span>
+                            </span>
                         </div>
-                        <span className="text-lg font-bold gradient-text" style={{ fontFamily: 'var(--font-display)' }}>
-                            BookShop
-                        </span>
                     </Link>
 
                     {/* Desktop nav */}
@@ -40,12 +47,17 @@ export default function Navbar() {
                                     <HiOutlineUser className="text-base" />
                                     Dashboard
                                 </Link>
+                                <Link to="/orders" className="text-sm text-slate-300 hover:text-white transition-colors flex items-center gap-1">
+                                    <HiOutlineShoppingCart className="text-base" />
+                                    My Orders
+                                </Link>
                                 {isAdmin && (
                                     <Link to="/admin" className="text-sm text-slate-300 hover:text-white transition-colors flex items-center gap-1">
                                         <HiOutlineShieldCheck className="text-base" />
                                         Admin
                                     </Link>
                                 )}
+                                <NotificationsBell />
                                 <WalletBalance />
                                 <div className="flex items-center gap-3 pl-3" style={{ borderLeft: '1px solid rgba(148,163,184,0.15)' }}>
                                     <span className="text-xs px-2 py-1 rounded-full"
@@ -83,6 +95,12 @@ export default function Navbar() {
                                 </Link>
                                 <Link to="/dashboard" className="text-sm text-slate-300 hover:text-white" onClick={() => setMobileOpen(false)}>
                                     Dashboard
+                                </Link>
+                                <Link to="/orders" className="text-sm text-slate-300 hover:text-white" onClick={() => setMobileOpen(false)}>
+                                    My Orders
+                                </Link>
+                                <Link to="/notifications" className="text-sm text-slate-300 hover:text-white" onClick={() => setMobileOpen(false)}>
+                                    Notifications
                                 </Link>
                                 {isAdmin && (
                                     <Link to="/admin" className="text-sm text-slate-300 hover:text-white" onClick={() => setMobileOpen(false)}>Admin</Link>
