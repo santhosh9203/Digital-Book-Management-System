@@ -57,8 +57,8 @@ cp .env.example .env
 3. Update `server/.env` values:
 
 - `MONGODB_URI` – MongoDB connection string (local or cloud)
-  - Local: `mongodb://localhost:27017/digital_bookshop`
-  - MongoDB Atlas: `mongodb+srv://username:password@cluster.mongodb.net/digital_bookshop`
+  - Local: `mongodb://localhost:--------`
+  - MongoDB Atlas: `------`
 - `JWT_SECRET`
 - `RAZORPAY_KEY_ID`
 - `RAZORPAY_KEY_SECRET`
