@@ -14,7 +14,7 @@ export const bookService = {
 };
 
 export const orderService = {
-    createOrder: (book_id) => api.post('/orders/create-order', { book_id }),
+    createOrder: (data) => api.post('/orders/create-order', data),
     verifyPayment: (data) => api.post('/orders/verify', data),
     getMyOrders: () => api.get('/orders/my-orders'),
     cancelOrder: (id) => api.patch(`/orders/${id}/cancel`),

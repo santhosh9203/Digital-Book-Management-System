@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { orderService, bookService } from '../services';
 import toast from 'react-hot-toast';
-import { HiOutlineClipboardList, HiOutlineClock, HiOutlineTruck, HiOutlineCheckCircle, HiOutlineXCircle } from 'react-icons/hi';
+import { HiOutlineClipboardList, HiOutlineClock, HiOutlineTruck, HiOutlineCheckCircle, HiOutlineXCircle, HiStar, HiOutlineStar } from 'react-icons/hi';
+import { reviewService } from '../services';
 
 const STATUS_STEPS = [
     { key: 'order_placed', label: 'Order placed' },
@@ -30,6 +31,11 @@ export default function MyOrders() {
     const [loading, setLoading] = useState(true);
     const [cancellingId, setCancellingId] = useState(null);
     const [returningId, setReturningId] = useState(null);
+    const [reviewingOrderId, setReviewingOrderId] = useState(null);
+    const [reviewRating, setReviewRating] = useState(0);
+    const [reviewComment, setReviewComment] = useState('');
+    const [reviewSubmitting, setReviewSubmitting] = useState(false);
+    const [reviewedBooks, setReviewedBooks] = useState(new Set());
 
     const highlightedId = useMemo(() => {
         const searchParams = new URLSearchParams(location.search);
@@ -83,6 +89,30 @@ export default function MyOrders() {
             toast.error(err.response?.data?.message || 'Failed to return order');
         } finally {
             setReturningId(null);
+        }
+    };
+
+    const handleSubmitReview = async (bookId) => {
+        if (reviewRating === 0) {
+            toast.error('Please select a rating');
+            return;
+        }
+        setReviewSubmitting(true);
+        try {
+            await reviewService.createReview({
+                book_id: bookId,
+                rating: reviewRating,
+                comment: reviewComment
+            });
+            toast.success('Review submitted! Thank you.');
+            setReviewedBooks(prev => new Set([...prev, bookId]));
+            setReviewingOrderId(null);
+            setReviewRating(0);
+            setReviewComment('');
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to submit review');
+        } finally {
+            setReviewSubmitting(false);
         }
     };
 
@@ -279,6 +309,68 @@ export default function MyOrders() {
                                         {canReturn && returnDeadline && (
                                             <div className="mt-2 text-[10px] text-slate-500">
                                                 Return window ends on {returnDeadline.toLocaleDateString()}
+                                            </div>
+                                        )}
+                                        {currentStatus === 'delivered' && !reviewedBooks.has(book?._id || book?.id) && (
+                                            <div className="mt-4 border-t border-white/5 pt-4">
+                                                {reviewingOrderId === (order._id || order.id) ? (
+                                                    <div className="space-y-4">
+                                                        <h4 className="text-xs font-bold text-white uppercase tracking-wider">Rate your purchase</h4>
+                                                        <div className="flex items-center gap-1.5">
+                                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                                <button
+                                                                    key={star}
+                                                                    onClick={() => setReviewRating(star)}
+                                                                    className="text-xl transition-all active:scale-125"
+                                                                >
+                                                                    {star <= reviewRating ? (
+                                                                        <HiStar className="text-yellow-400" />
+                                                                    ) : (
+                                                                        <HiOutlineStar className="text-slate-500" />
+                                                                    )}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                        <textarea
+                                                            placeholder="What did you think of this book? (Optional)"
+                                                            className="w-full bg-slate-900/50 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-blue-500/50 outline-none"
+                                                            rows="2"
+                                                            value={reviewComment}
+                                                            onChange={(e) => setReviewComment(e.target.value)}
+                                                        />
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => handleSubmitReview(book?._id || book?.id)}
+                                                                disabled={reviewSubmitting}
+                                                                className="btn-primary py-2 px-4 text-[11px] font-bold"
+                                                            >
+                                                                {reviewSubmitting ? 'Posting...' : 'Submit'}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setReviewingOrderId(null)}
+                                                                className="btn-secondary py-2 px-4 text-[11px] font-bold"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => {
+                                                            setReviewingOrderId(order._id || order.id);
+                                                            setReviewRating(0);
+                                                            setReviewComment('');
+                                                        }}
+                                                        className="btn-primary py-2 px-4 text-[11px] font-bold bg-yellow-500/10 text-yellow-500 border-yellow-500/20 hover:bg-yellow-500 hover:text-slate-900"
+                                                    >
+                                                        <HiStar className="inline mr-1" /> Rate Product
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                        {reviewedBooks.has(book?._id || book?.id) && (
+                                            <div className="mt-4 p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/10 text-[10px] text-emerald-500 font-bold text-center">
+                                                ✓ Thank you for your review!
                                             </div>
                                         )}
                                         <div className="mt-4 flex flex-col gap-3">

@@ -15,10 +15,14 @@ const User = require('../models/userModel');
  */
 const createOrder = async (req, res, next) => {
     try {
-        const { book_id } = req.body;
+        const { book_id, shipping_address } = req.body;
 
         if (!book_id) {
             return res.status(400).json({ message: 'Book ID is required.' });
+        }
+
+        if (!shipping_address || !shipping_address.full_name || !shipping_address.address_line || !shipping_address.city || !shipping_address.pincode || !shipping_address.phone) {
+            return res.status(400).json({ message: 'Complete shipping address is required.' });
         }
 
         // Convert string ID to MongoDB ObjectId
@@ -56,6 +60,7 @@ const createOrder = async (req, res, next) => {
             book_id: bookObjectId,
             razorpay_order_id: simOrder.id, // Keeping field name for compatibility
             amount: book.price,
+            shipping_address,
         });
 
         res.status(201).json({

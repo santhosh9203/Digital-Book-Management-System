@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { HiOutlineShoppingCart, HiArrowLeft, HiStar, HiOutlineStar } from 'react-icons/hi';
 import PaymentSimulatorModal from '../components/PaymentSimulatorModal';
+import AddressModal from '../components/AddressModal';
 
 export default function BookDetail() {
     const { id } = useParams();
@@ -15,6 +16,7 @@ export default function BookDetail() {
     const [purchasing, setPurchasing] = useState(false);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [orderData, setOrderData] = useState(null);
+    const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
     const [walletBalance, setWalletBalance] = useState(0);
     const [reviews, setReviews] = useState([]);
     const [reviewSummary, setReviewSummary] = useState({ average: 0, count: 0 });
@@ -112,13 +114,21 @@ export default function BookDetail() {
             return;
         }
 
+        setIsAddressModalOpen(true);
+    };
+
+    const submitAddress = async (address) => {
+        setIsAddressModalOpen(false);
         setPurchasing(true);
         try {
-            const res = await orderService.createOrder(book.id);
+            const res = await orderService.createOrder({
+                book_id: book.id,
+                shipping_address: address
+            });
             setOrderData(res.data);
             setIsPaymentModalOpen(true);
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to initiate payment');
+            toast.error(err.response?.data?.message || 'Failed to initiate order');
         } finally {
             setPurchasing(false);
         }
@@ -296,6 +306,13 @@ export default function BookDetail() {
                 onClose={() => setIsPaymentModalOpen(false)}
                 onPaymentSuccess={handlePaymentSuccess}
                 orderData={orderData}
+                bookTitle={book.title}
+            />
+
+            <AddressModal
+                isOpen={isAddressModalOpen}
+                onClose={() => setIsAddressModalOpen(false)}
+                onSubmit={submitAddress}
                 bookTitle={book.title}
             />
         </div>

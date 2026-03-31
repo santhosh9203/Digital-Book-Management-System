@@ -167,7 +167,7 @@ export default function UserDashboard() {
                                         </div>
 
                                         <button
-                                            onClick={() => navigate(order.fulfillment_status === 'delivered' ? `/books/${book._id || book.id}` : '/orders')}
+                                            onClick={() => navigate('/orders')}
                                             className="btn-primary py-2.5 px-3 text-[11px] font-bold flex items-center justify-center gap-2 bg-blue-600/10 text-blue-400 hover:bg-blue-600 hover:text-white border-blue-500/30 transition-all active:scale-95"
                                         >
                                             {order.fulfillment_status === 'delivered' ? 'Rate Product' : 'Track Order'}

@@ -3,6 +3,7 @@ const WalletLedger = require('../models/walletLedgerModel');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const User = require('../models/userModel');
+const Notification = require('../models/notificationModel');
 
 /**
  * GET /api/wallet/balance
@@ -104,6 +105,14 @@ const creditWallet = async (req, res, next) => {
             await WalletLedger.create(ledgerData);
         }
 
+        await Notification.create({
+            user_id: req.user.id,
+            title: 'Wallet Credit',
+            message: `₹${Number(amount).toFixed(2)} has been credited to your wallet. New Balance: ₹${wallet.balance.toFixed(2)}`,
+            type: 'wallet',
+            link: '/wallet'
+        });
+
         res.json({ message: 'Wallet credited successfully', balance: wallet.balance });
     } catch (error) {
         if (session) {
@@ -165,6 +174,14 @@ const debitWallet = async (req, res, next) => {
         } else {
             await WalletLedger.create(ledgerData);
         }
+
+        await Notification.create({
+            user_id: req.user.id,
+            title: 'Wallet Debit',
+            message: `₹${Number(amount).toFixed(2)} has been debited from your wallet. Remaining Balance: ₹${wallet.balance.toFixed(2)}`,
+            type: 'wallet',
+            link: '/wallet'
+        });
 
         res.json({ message: 'Wallet debited successfully', balance: wallet.balance });
     } catch (error) {

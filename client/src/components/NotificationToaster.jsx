@@ -28,7 +28,7 @@ export default function NotificationToaster() {
                             (t) => (
                                 <div className="flex flex-col gap-1">
                                     <div className="font-bold text-sm text-white">{n.title}</div>
-                                    <div className="text-xs text-slate-400">{n.message}</div>
+                                    <div className="text-xs text-white/90">{n.message}</div>
                                 </div>
                             ),
                             {

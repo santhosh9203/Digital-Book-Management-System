@@ -91,7 +91,7 @@ export default function App() {
 
           {/* Toast Notifications */}
           <Toaster
-            position="bottom-right"
+            position="top-right"
             toastOptions={{
               className: 'glass',
               style: {
