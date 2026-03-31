@@ -98,7 +98,21 @@ const addBook = async (req, res, next) => {
                 pdf_url = `uploads/books/${req.files.pdf[0].filename}`;
             }
             if (req.files.cover && req.files.cover[0]) {
-                cover_image_url = `uploads/books/${req.files.cover[0].filename}`;
+                const coverFile = req.files.cover[0];
+                const coverFilePath = coverFile.path;
+                const coverData = fs.readFileSync(coverFilePath);
+                const coverType = coverFile.mimetype;
+                
+                // Store in DB, then remove local temp file
+                var cover_image_data = coverData;
+                var cover_image_type = coverType;
+                var has_cover = true;
+                
+                try {
+                    fs.unlinkSync(coverFilePath);
+                } catch (err) {
+                    console.error('Error deleting temp cover file:', err);
+                }
             }
         }
 
@@ -109,7 +123,9 @@ const addBook = async (req, res, next) => {
             price: parseFloat(price),
             description,
             pdf_url,
-            cover_image_url,
+            cover_image_data,
+            cover_image_type,
+            has_cover,
         });
 
         const users = await User.find({ role: 'user' }).select('_id').lean();
@@ -157,16 +173,26 @@ const updateBook = async (req, res, next) => {
                 updates.pdf_url = `uploads/books/${req.files.pdf[0].filename}`;
             }
             if (req.files.cover && req.files.cover[0]) {
-                // Delete old cover if exists
-                if (existing.cover_image_url) {
-                    const oldPath = path.join(__dirname, '..', existing.cover_image_url);
-                    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+                const coverFile = req.files.cover[0];
+                const coverFilePath = coverFile.path;
+                updates.cover_image_data = fs.readFileSync(coverFilePath);
+                updates.cover_image_type = coverFile.mimetype;
+                updates.has_cover = true;
+                
+                try {
+                    fs.unlinkSync(coverFilePath);
+                } catch (err) {
+                    console.error('Error deleting temp cover file:', err);
                 }
-                updates.cover_image_url = `uploads/books/${req.files.cover[0].filename}`;
+                
+                // Remove the URL if it somehow existed before
+                updates.cover_image_url = undefined; 
             }
         }
 
-        const book = await Book.findByIdAndUpdate(bookId, updates, { new: true }).lean();
+        const book = await Book.findByIdAndUpdate(bookId, updates, { new: true })
+            .select('-cover_image_data') // Don't send buffer back in response
+            .lean();
         res.json({ message: 'Book updated successfully', book });
     } catch (error) {
         next(error);
@@ -187,14 +213,10 @@ const deleteBook = async (req, res, next) => {
             return res.status(404).json({ message: 'Book not found.' });
         }
 
-        // Delete associated files
+        // Delete associated local files (PDF only)
         if (book.pdf_url) {
             const pdfPath = path.join(__dirname, '..', book.pdf_url);
             if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
-        }
-        if (book.cover_image_url) {
-            const coverPath = path.join(__dirname, '..', book.cover_image_url);
-            if (fs.existsSync(coverPath)) fs.unlinkSync(coverPath);
         }
 
         await Book.deleteOne({ _id: bookId });

@@ -8,7 +8,9 @@ const bookSchema = new mongoose.Schema(
         price: { type: Number, required: true, min: 0 },
         description: { type: String, default: '' },
         pdf_url: { type: String, default: null },
-        cover_image_url: { type: String, default: null },
+        cover_image_data: { type: Buffer, default: null },
+        cover_image_type: { type: String, default: null },
+        has_cover: { type: Boolean, default: false },
         total_pages: { type: Number, default: 0 },
     },
     {
@@ -21,9 +23,18 @@ bookSchema.virtual('id').get(function () {
     return this._id.toString();
 });
 
+// virtual cover url
+bookSchema.virtual('cover_image_url').get(function () {
+    return this.has_cover ? `/api/books/${this._id}/cover` : null;
+});
+
 bookSchema.set('toJSON', {
     virtuals: true,
     versionKey: false,
+    transform: function (doc, ret) {
+        delete ret.cover_image_data; // Never send the raw buffer in JSON
+        return ret;
+    }
 });
 
 // indexes
@@ -50,7 +61,8 @@ bookSchema.statics.findAll = async function ({ search, category, page = 1, limit
     const bookDocs = await this.find(filter)
         .sort({ created_at: -1 })
         .skip(skip)
-        .limit(limit);
+        .limit(limit)
+        .select('-cover_image_data'); // CRITICAL: Exclude big buffer in lists
 
     const books = bookDocs.map(doc => doc.toJSON());
 

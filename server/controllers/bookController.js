@@ -83,12 +83,14 @@ const getBookCover = async (req, res, next) => {
         }
         const bookId = new mongoose.Types.ObjectId(req.params.id);
         const book = await Book.findOne({ _id: bookId });
-        if (!book || !book.cover_image_url) {
+        if (!book || !book.cover_image_data) {
             return res.status(404).json({ message: 'Cover not found.' });
         }
 
-        const filePath = path.join(__dirname, '..', book.cover_image_url);
-        res.sendFile(filePath);
+        // Serve from DB buffer
+        res.set('Content-Type', book.cover_image_type || 'image/jpeg');
+        res.set('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+        res.send(book.cover_image_data);
     } catch (error) {
         next(error);
     }
