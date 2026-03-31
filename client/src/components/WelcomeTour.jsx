@@ -37,28 +37,19 @@ export default function WelcomeTour() {
     ];
 
     useEffect(() => {
-        if (user && user.role !== 'admin') {
-            checkTutorialStatus();
+        if (user && user.role !== 'admin' && user.has_watched_tutorial === false) {
+            // Slight delay for smooth entry
+            const timer = setTimeout(() => setIsOpen(true), 1500);
+            return () => clearTimeout(timer);
         }
     }, [user]);
-
-    const checkTutorialStatus = async () => {
-        try {
-            const res = await userService.getProfile();
-            if (res.data && res.data.has_watched_tutorial === false) {
-                // Slight delay for smooth entry
-                setTimeout(() => setIsOpen(true), 1500);
-            }
-        } catch (err) {
-            // Silently fail, don't block user
-        }
-    };
 
     const closeTour = async () => {
         if (loading) return;
         setLoading(true);
         try {
             await userService.completeTutorial();
+            updateUser({ has_watched_tutorial: true });
             setIsOpen(false);
         } catch (err) {
             setIsOpen(false);

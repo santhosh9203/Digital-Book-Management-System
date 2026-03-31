@@ -38,6 +38,7 @@ const register = async (req, res, next) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                has_watched_tutorial: user.has_watched_tutorial,
             },
         });
     } catch (error) {
@@ -72,6 +73,7 @@ const login = async (req, res, next) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                has_watched_tutorial: user.has_watched_tutorial,
             },
         });
     } catch (error) {
