@@ -6,6 +6,9 @@ import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import NotificationToaster from './components/NotificationToaster';
+import WelcomeTour from './components/WelcomeTour';
+import BackToTop from './components/BackToTop';
 
 // Pages
 import Home from './pages/Home';
@@ -23,6 +26,9 @@ export default function App() {
   return (
     <AuthProvider>
       <Router>
+        <NotificationToaster />
+        <WelcomeTour />
+        <BackToTop />
         <div className="flex flex-col min-h-screen">
           <Navbar />
 

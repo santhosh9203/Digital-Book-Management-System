@@ -186,12 +186,13 @@ export default function BookDetail() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 {/* Cover */}
-                <div className="glass rounded-2xl overflow-hidden" style={{ maxHeight: '500px' }}>
+                {/* Cover with improved centering and no cropping */}
+                <div className="glass rounded-2xl overflow-hidden flex items-center justify-center bg-slate-900/10 h-[450px]">
                     {coverUrl ? (
-                        <img src={coverUrl} alt={book.title} className="w-full h-full object-contain p-4" />
+                        <img src={coverUrl} alt={book.title} className="max-w-full max-h-full object-contain shadow-2xl transition-transform hover:scale-[1.02]" />
                     ) : (
-                        <div className="w-full h-80 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)' }}>
-                            <div className="text-6xl">📚</div>
+                        <div className="w-full h-full flex items-center justify-center text-6xl" style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)' }}>
+                            📚
                         </div>
                     )}
                 </div>
@@ -260,45 +261,7 @@ export default function BookDetail() {
                     </div>
                 </div>
 
-                {user && reviewEligibility.eligible && (
-                    <div className="mb-8 bg-slate-900/50 border border-white/10 rounded-2xl p-5">
-                        <h3 className="text-sm font-semibold text-white mb-3">Write a review</h3>
-                        <div className="flex items-center gap-2 mb-4">
-                            {Array.from({ length: 5 }).map((_, i) => {
-                                const value = i + 1;
-                                return (
-                                    <button
-                                        key={`rate-${value}`}
-                                        type="button"
-                                        onClick={() => setReviewRating(value)}
-                                        className="text-lg"
-                                    >
-                                        {value <= reviewRating ? (
-                                            <HiStar className="text-yellow-400" />
-                                        ) : (
-                                            <HiOutlineStar className="text-slate-500" />
-                                        )}
-                                    </button>
-                                );
-                            })}
-                            <span className="text-xs text-slate-400 ml-2">{reviewRating ? `${reviewRating} / 5` : 'Select rating'}</span>
-                        </div>
-                        <textarea
-                            value={reviewComment}
-                            onChange={(e) => setReviewComment(e.target.value)}
-                            className="input-field h-24 mb-4"
-                            placeholder="Share your experience (optional)"
-                        />
-                        <button
-                            type="button"
-                            onClick={handleSubmitReview}
-                            disabled={reviewSubmitting}
-                            className="btn-primary py-2 px-4 text-sm"
-                        >
-                            {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
-                        </button>
-                    </div>
-                )}
+                {/* Write review form removed as per request */}
 
                 <div className="space-y-4">
                     {reviews.length === 0 ? (

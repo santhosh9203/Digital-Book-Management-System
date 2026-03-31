@@ -122,6 +122,40 @@ export default function Home() {
                 </div>
             </section>
 
+            {/* Instructions Section (How it works) */}
+            <section className="py-20 px-4">
+                <div className="max-w-5xl mx-auto glass rounded-3xl p-10 border border-white/10 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                        <HiOutlineBookOpen className="text-9xl rotate-12" />
+                    </div>
+                    
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold mb-3" style={{ fontFamily: 'var(--font-display)' }}>
+                            How to <span className="gradient-text">get started</span>
+                        </h2>
+                        <p className="text-slate-400 text-sm">Follow these 3 simple steps to start reading.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold mb-4 shadow-lg shadow-blue-500/20">1</div>
+                            <h4 className="font-bold mb-2">Browse & Choose</h4>
+                            <p className="text-xs text-slate-400">Head to the bookstore and find your favorite titles using search and filters.</p>
+                        </div>
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold mb-4 shadow-lg shadow-emerald-500/20">2</div>
+                            <h4 className="font-bold mb-2">Refill Wallet</h4>
+                            <p className="text-xs text-slate-400">Add money to your BOoCArT wallet securely using Razorpay or UPI.</p>
+                        </div>
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center font-bold mb-4 shadow-lg shadow-purple-500/20">3</div>
+                            <h4 className="font-bold mb-2">Track & Read</h4>
+                            <p className="text-xs text-slate-400">Place your order and track the live delivery status from your personal dashboard.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* CTA Section */}
             <section className="py-16 px-4">
                 <div className="max-w-3xl mx-auto text-center glass rounded-2xl p-10">

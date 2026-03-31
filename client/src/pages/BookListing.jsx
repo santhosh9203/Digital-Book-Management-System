@@ -101,6 +101,11 @@ export default function BookListing() {
             </div>
 
             {/* Books Grid */}
+            {search && !loading && (
+                <div className="mb-4 text-xs text-slate-500">
+                    Showing results for "<span className="text-blue-500 font-semibold">{search}</span>"
+                </div>
+            )}
             {loading ? (
                 <div className="flex justify-center py-20">
                     <div className="spinner" />

@@ -30,7 +30,19 @@ export default function UserDashboard() {
     const activeOrders = paidOrders.filter(
         (o) => !['delivered', 'cancelled', 'returned'].includes(o.fulfillment_status)
     );
-    const recentOrders = paidOrders.slice(0, 3);
+    const recentOrders = paidOrders
+        .filter((o) => {
+            if (['cancelled', 'returned'].includes(o.fulfillment_status)) return false;
+            // Hide delivered orders after 3 days (return period)
+            if (o.fulfillment_status === 'delivered' && o.delivery_date) {
+                const deliveryDate = new Date(o.delivery_date);
+                const expiryDate = new Date(deliveryDate);
+                expiryDate.setDate(expiryDate.getDate() + 3);
+                return new Date() <= expiryDate;
+            }
+            return true;
+        })
+        .slice(0, 3);
 
     const formatStatus = (status) => {
         if (!status) return 'order placed';
@@ -155,10 +167,10 @@ export default function UserDashboard() {
                                         </div>
 
                                         <button
-                                            onClick={() => navigate('/orders')}
+                                            onClick={() => navigate(order.fulfillment_status === 'delivered' ? `/books/${book._id || book.id}` : '/orders')}
                                             className="btn-primary py-2.5 px-3 text-[11px] font-bold flex items-center justify-center gap-2 bg-blue-600/10 text-blue-400 hover:bg-blue-600 hover:text-white border-blue-500/30 transition-all active:scale-95"
                                         >
-                                            Track Order
+                                            {order.fulfillment_status === 'delivered' ? 'Rate Product' : 'Track Order'}
                                         </button>
                                     </div>
                                 </div>
