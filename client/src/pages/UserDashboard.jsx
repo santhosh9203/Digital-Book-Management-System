@@ -123,7 +123,7 @@ export default function UserDashboard() {
                                     <div className="flex gap-5 mb-6 flex-1">
                                         <div className="w-24 h-32 rounded-lg overflow-hidden flex-shrink-0 border border-white/10 shadow-2xl bg-slate-900 group-hover:rotate-1 transition-transform">
                                             {book.cover_image_url ? (
-                                                <img src={bookService.getCoverUrl(book._id || book.id)} alt={book.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                <img src={bookService.getCoverUrl(book._id || book.id)} alt={book.title} className="w-full h-full object-contain p-1 transition-transform duration-500 group-hover:scale-110" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-3xl opacity-50">📖</div>
                                             )}

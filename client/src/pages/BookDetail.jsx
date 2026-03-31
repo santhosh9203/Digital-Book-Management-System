@@ -188,7 +188,7 @@ export default function BookDetail() {
                 {/* Cover */}
                 <div className="glass rounded-2xl overflow-hidden" style={{ maxHeight: '500px' }}>
                     {coverUrl ? (
-                        <img src={coverUrl} alt={book.title} className="w-full h-full object-cover" />
+                        <img src={coverUrl} alt={book.title} className="w-full h-full object-contain p-4" />
                     ) : (
                         <div className="w-full h-80 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)' }}>
                             <div className="text-6xl">📚</div>

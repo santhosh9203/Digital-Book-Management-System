@@ -170,7 +170,7 @@ export default function MyOrders() {
                                                 <img
                                                     src={bookService.getCoverUrl(book._id || book.id)}
                                                     alt={book.title}
-                                                    className="w-full h-full object-cover"
+                                                    className="w-full h-full object-contain p-1"
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-2xl opacity-50">📘</div>
