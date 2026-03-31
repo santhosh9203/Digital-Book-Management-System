@@ -98,4 +98,15 @@ const createReview = async (req, res, next) => {
     }
 };
 
-module.exports = { getBookReviews, getReviewEligibility, createReview };
+const getMyReviews = async (req, res, next) => {
+    try {
+        const userId = new mongoose.Types.ObjectId(req.user.id);
+        const reviews = await Review.find({ user_id: userId }).select('book_id').lean();
+        const bookIds = reviews.map((r) => (r.book_id?._id || r.book_id).toString());
+        res.json({ bookIds });
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = { getBookReviews, getReviewEligibility, createReview, getMyReviews };

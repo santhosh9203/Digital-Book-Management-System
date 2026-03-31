@@ -49,8 +49,12 @@ export default function MyOrders() {
 
     const fetchOrders = async () => {
         try {
-            const res = await orderService.getMyOrders();
-            setOrders(res.data.orders || []);
+            const [orderRes, reviewRes] = await Promise.all([
+                orderService.getMyOrders(),
+                reviewService.getMyReviews()
+            ]);
+            setOrders(orderRes.data.orders || []);
+            setReviewedBooks(new Set(reviewRes.data.bookIds || []));
         } catch {
             toast.error('Failed to fetch your orders');
         } finally {
@@ -120,10 +124,16 @@ export default function MyOrders() {
     const visibleOrders = orders.filter((order) => {
         if (order.status !== 'paid') return false;
         if (['cancelled', 'returned'].includes(order.fulfillment_status)) return false;
+
+        const bookId = (order.book_id?._id || order.book_id?.id || '').toString();
+        // Hide if already reviewed
+        if (reviewedBooks.has(bookId)) return false;
+
         if (order.fulfillment_status === 'delivered') {
             if (!order.delivery_date) return false;
             const deliveredAt = new Date(order.delivery_date);
-            const returnDeadline = new Date(deliveredAt.getTime() + 24 * 60 * 60 * 1000);
+            // Increased to 3 days as per user request
+            const returnDeadline = new Date(deliveredAt.getTime() + 3 * 24 * 60 * 60 * 1000);
             if (order.refunded_at) return false;
             return now <= returnDeadline;
         }

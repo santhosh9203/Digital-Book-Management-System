@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { orderService, bookService } from '../services';
+import { orderService, bookService, reviewService } from '../services';
 import toast from 'react-hot-toast';
-import { HiOutlineBookOpen, HiOutlineClock, HiOutlineCreditCard, HiOutlineClipboardList } from 'react-icons/hi';
+import { HiOutlineBookOpen, HiOutlineClock, HiOutlineCreditCard, HiOutlineClipboardList, HiStar } from 'react-icons/hi';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function UserDashboard() {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
+    const [reviewedBookIds, setReviewedBookIds] = useState(new Set());
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -17,10 +18,14 @@ export default function UserDashboard() {
 
     const fetchOrders = async () => {
         try {
-            const res = await orderService.getMyOrders();
-            setOrders(res.data.orders || []);
+            const [orderRes, reviewRes] = await Promise.all([
+                orderService.getMyOrders(),
+                reviewService.getMyReviews()
+            ]);
+            setOrders(orderRes.data.orders || []);
+            setReviewedBookIds(new Set(reviewRes.data.bookIds || []));
         } catch {
-            toast.error('Failed to fetch your orders');
+            toast.error('Failed to fetch dashboard data');
         } finally {
             setLoading(false);
         }
@@ -33,6 +38,11 @@ export default function UserDashboard() {
     const recentOrders = paidOrders
         .filter((o) => {
             if (['cancelled', 'returned'].includes(o.fulfillment_status)) return false;
+            
+            const bookId = (o.book_id?._id || o.book_id?.id || '').toString();
+            // REMOVE from list if already reviewed
+            if (reviewedBookIds.has(bookId)) return false;
+
             // Hide delivered orders after 3 days (return period)
             if (o.fulfillment_status === 'delivered' && o.delivery_date) {
                 const deliveryDate = new Date(o.delivery_date);

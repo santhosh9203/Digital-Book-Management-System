@@ -62,4 +62,5 @@ export const reviewService = {
     getBookReviews: (bookId) => api.get(`/reviews/book/${bookId}`),
     getEligibility: (bookId) => api.get(`/reviews/eligibility/${bookId}`),
     createReview: (data) => api.post('/reviews', data),
+    getMyReviews: () => api.get('/reviews/my-reviews'),
 };

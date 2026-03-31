@@ -27,8 +27,8 @@ export default function NotificationToaster() {
                         toast(
                             (t) => (
                                 <div className="flex flex-col gap-1">
-                                    <div className="font-bold text-sm text-white">{n.title}</div>
-                                    <div className="text-xs text-white/90">{n.message}</div>
+                                    <div className="font-bold text-sm" style={{ color: '#fff' }}>{n.title}</div>
+                                    <div className="text-xs leading-relaxed" style={{ color: '#fff' }}>{n.message}</div>
                                 </div>
                             ),
                             {

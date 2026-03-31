@@ -289,7 +289,7 @@ const updateOrderStatus = async (req, res, next) => {
                     title: 'Rate your purchase',
                     message: `Your order for \"${order.book_id?.title || 'Book'}\" was delivered. Leave a review.`,
                     type: 'order',
-                    link: `/books/${order.book_id._id.toString()}`,
+                    link: `/orders?highlight=${order._id.toString()}`,
                     metadata: { book_id: order.book_id._id.toString(), order_id: order._id.toString() },
                 });
             }
