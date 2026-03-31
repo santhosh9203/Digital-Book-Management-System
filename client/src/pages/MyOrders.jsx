@@ -130,8 +130,7 @@ export default function MyOrders() {
         if (reviewedBooks.has(bookId)) return false;
 
         if (order.fulfillment_status === 'delivered') {
-            if (!order.delivery_date) return false;
-            const deliveredAt = new Date(order.delivery_date);
+            const deliveredAt = new Date(order.delivery_date || order.updated_at);
             // Increased to 3 days as per user request
             const returnDeadline = new Date(deliveredAt.getTime() + 3 * 24 * 60 * 60 * 1000);
             if (order.refunded_at) return false;
@@ -171,8 +170,11 @@ export default function MyOrders() {
             {visibleOrders.length === 0 ? (
                 <div className="text-center py-20 glass rounded-2xl border-white/5 bg-slate-800/20">
                     <div className="text-6xl mb-6 grayscale opacity-20">📦</div>
-                    <h3 className="text-lg font-semibold text-slate-300 mb-2">No active orders</h3>
-                    <p className="text-sm text-slate-500 mb-8 max-w-xs mx-auto">Delivered, cancelled, and returned orders are hidden to keep this view clean.</p>
+                    <h3 className="text-xl font-bold text-white mb-2">No active orders</h3>
+                    <p className="text-slate-500 text-sm mb-8">
+                        Cancelled and returned orders are hidden to keep this view clean.<br/>
+                        (Delivered orders stay visible for 3 days)
+                    </p>
                     <Link to="/books" className="btn-primary py-3 px-8">Browse Bookstore</Link>
                 </div>
             ) : (

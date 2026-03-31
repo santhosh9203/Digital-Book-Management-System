@@ -548,7 +548,7 @@ const returnOrder = async (req, res, next) => {
         }
 
         const deliveredAt = new Date(order.delivery_date);
-        const returnDeadline = new Date(deliveredAt.getTime() + 24 * 60 * 60 * 1000);
+        const returnDeadline = new Date(deliveredAt.getTime() + 3 * 24 * 60 * 60 * 1000);
         const now = new Date();
         if (now > returnDeadline) {
             await abortSession();

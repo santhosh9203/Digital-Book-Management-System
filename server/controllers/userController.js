@@ -14,6 +14,19 @@ const getTransactionPasswordStatus = async (req, res, next) => {
     }
 };
 
+const getProfile = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.id);
+        res.json({
+            name: user.name,
+            email: user.email,
+            has_watched_tutorial: user.has_watched_tutorial
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 const setOrChangeTransactionPassword = async (req, res, next) => {
     try {
         const { old_password, new_password } = req.body;
@@ -121,9 +134,20 @@ const resetTransactionPassword = async (req, res, next) => {
     }
 };
 
+const completeTutorial = async (req, res, next) => {
+    try {
+        await User.findByIdAndUpdate(req.user.id, { has_watched_tutorial: true });
+        res.json({ message: 'Tutorial completed.' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getTransactionPasswordStatus,
+    getProfile,
     setOrChangeTransactionPassword,
     requestTransactionPasswordReset,
     resetTransactionPassword,
+    completeTutorial,
 };

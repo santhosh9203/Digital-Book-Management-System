@@ -56,6 +56,8 @@ export const userService = {
     setTransactionPassword: (data) => api.put('/users/transaction-password', data),
     requestTransactionPasswordReset: () => api.post('/users/transaction-password/forgot'),
     resetTransactionPassword: (data) => api.post('/users/transaction-password/reset', data),
+    getProfile: () => api.get('/users/profile'),
+    completeTutorial: () => api.post('/users/tutorial/complete'),
 };
 
 export const reviewService = {

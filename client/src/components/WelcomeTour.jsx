@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import { HiOutlineBookmark, HiOutlineCreditCard, HiOutlineTruck, HiOutlineSparkles, HiXMark, HiChevronRight, HiChevronLeft } from 'react-icons/hi2';
+import { userService } from '../services';
+import { useAuth } from '../context/AuthContext';
 
 export default function WelcomeTour() {
+    const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
+    const [loading, setLoading] = useState(false);
 
     const steps = [
         {
@@ -19,8 +23,8 @@ export default function WelcomeTour() {
             color: "from-blue-400/20 to-indigo-500/20"
         },
         {
-            title: "Wallet & Payments",
-            description: "Add money to your secure wallet first. We use Razorpay for 100% safe and encrypted transactions.",
+            title: "Virtual Wallet",
+            description: "Add money to your simulation wallet first. You'll need to set a transaction password for extra security.",
             icon: <HiOutlineCreditCard className="text-4xl text-emerald-400" />,
             color: "from-emerald-400/20 to-teal-500/20"
         },
@@ -33,19 +37,34 @@ export default function WelcomeTour() {
     ];
 
     useEffect(() => {
-        const hasSeenTour = localStorage.getItem('hasSeenTour');
-        const user = sessionStorage.getItem('user');
-        
-        if (!hasSeenTour && user) {
-            // Show tour for first-time logged-in users
-            const timer = setTimeout(() => setIsOpen(true), 2000);
-            return () => clearTimeout(timer);
+        if (user && user.role !== 'admin') {
+            checkTutorialStatus();
         }
-    }, []);
+    }, [user]);
 
-    const closeTour = () => {
-        localStorage.setItem('hasSeenTour', 'true');
-        setIsOpen(false);
+    const checkTutorialStatus = async () => {
+        try {
+            const res = await userService.getProfile();
+            if (res.data && res.data.has_watched_tutorial === false) {
+                // Slight delay for smooth entry
+                setTimeout(() => setIsOpen(true), 1500);
+            }
+        } catch (err) {
+            // Silently fail, don't block user
+        }
+    };
+
+    const closeTour = async () => {
+        if (loading) return;
+        setLoading(true);
+        try {
+            await userService.completeTutorial();
+            setIsOpen(false);
+        } catch (err) {
+            setIsOpen(false);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const nextStep = () => {

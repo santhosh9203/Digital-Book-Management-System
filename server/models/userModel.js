@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
     transaction_password_set_at: { type: Date, default: null },
     transaction_password_reset_otp: { type: String, default: null },
     transaction_password_reset_expires: { type: Date, default: null },
+    has_watched_tutorial: { type: Boolean, default: false },
 }, {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
 });
